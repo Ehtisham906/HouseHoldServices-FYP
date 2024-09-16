@@ -1,393 +1,320 @@
-// import React, { useState } from 'react';
 
-// const ServiceForm = () => {
-//   const [service, setService] = useState('');
-//   const [name, setName] = useState('');
-//   const [phone, setPhone] = useState('');
-//   const [email, setEmail] = useState('');
-//   const [details, setDetails] = useState('');
 
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     // Handle form submission logic here
-//     console.log('Service:', service);
-//     console.log('Name:', name);
-//     console.log('Phone:', phone);
-//     console.log('Email:', email);
-//     console.log('Details:', details);
+import React, { useState } from 'react';
 
-//     // Reset form fields
-//     setService('');
-//     setName('');
-//     setPhone('');
-//     setEmail('');
-//     setDetails('');
-//   };
 
-//   return (
-//     <div className="max-w-lg mx-auto p-4 border rounded-lg shadow-lg">
-//       <h2 className="text-2xl font-bold mb-4">Order a Service</h2>
-//       <form onSubmit={handleSubmit} className="space-y-4">
-//         <div>
-//           <label htmlFor="service" className="block text-sm font-medium text-gray-700">Select Service</label>
-//           <select
-//             id="service"
-//             value={service}
-//             onChange={(e) => setService(e.target.value)}
-//             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             required
-//           >
-//             <option value="">Choose a service</option>
-//             <option value="Plumbing">Plumbing Services</option>
-//             <option value="Barber">Barber Services</option>
-//             <option value="Carpenter">Carpenter Services</option>
-//             <option value="Electrician">Electrician Services</option>
-//             <option value="Housekeeper">Housekeeper Services</option>
-//           </select>
-//         </div>
+export default function ServicesForm() {
+    const [step, setStep] = useState(1);
 
-//         <div>
-//           <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-//           <input
-//             type="text"
-//             id="name"
-//             value={name}
-//             onChange={(e) => setName(e.target.value)}
-//             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             required
-//           />
-//         </div>
-
-//         <div>
-//           <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
-//           <input
-//             type="tel"
-//             id="phone"
-//             value={phone}
-//             onChange={(e) => setPhone(e.target.value)}
-//             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             required
-//           />
-//         </div>
-
-//         <div>
-//           <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
-//           <input
-//             type="email"
-//             id="email"
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             required
-//           />
-//         </div>
-
-//         <div>
-//           <label htmlFor="details" className="block text-sm font-medium text-gray-700">Additional Details</label>
-//           <textarea
-//             id="details"
-//             value={details}
-//             onChange={(e) => setDetails(e.target.value)}
-//             rows="4"
-//             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//           />
-//         </div>
-
-//         <button
-//           type="submit"
-//           className="w-full p-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-//         >
-//           Submit
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default ServiceForm;
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-// import qouteImage from "../assets/images/QouteFormImage.webp"
-
-const ServiceForm = () =>{
     const [formData, setFormData] = useState({
-        email: "",
-        firstName: "",
-        lastName: "",
-        phoneNumber: "",
-        companyName: "",
-        service: "",
-        helpMessage: "",
+        name: '',
+        email: '',
+        phoneNumber: '',
+        address: '',
+        serviceType: '',
+        specificService: '',
+        price: '',
+        unitPrice: '',
+        quantity: 1,
+        images: []
     });
+    const [file, setFile] = useState(null);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [isWalletConnected, setIsWalletConnected] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [walletLoading, setWalletLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
 
-
-    const [submitMessage, setSubmitMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-
-
-    const handleChange = (e) => {
+    const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
+
+
+    const connectWallet = async () => {
+        setWalletLoading(true);
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            setIsWalletConnected(true);
+        } catch (error) {
+            console.error("Error connecting wallet", error);
+        } finally {
+            setWalletLoading(false);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setSuccess('');
+        setIsSubmitting(true);
+        setLoading(true);
+        setProgress(0);
 
-        if (!formData.email || !formData.firstName || !formData.lastName) {
-            setError("Please fill in all required fields.");
-            return;
+        // Required field validation
+        const requiredFields = [
+            { name: "serviceType", label: "Service Type" },
+            { name: "specificService", label: "Specific Service" },
+            { name: "name", label: "Name" },
+            { name: "email", label: "Email" },
+            { name: "phoneNumber", label: "Phone Number" },
+            { name: "address", label: "Address" },
+            { name: "price", label: "Price" },
+            { name: "unitPrice", label: "Unit Price" },
+            { name: "quantity", label: "Quantity" },
+        ];
+
+        for (const field of requiredFields) {
+            if (!formData[field.name]) {
+                setIsSubmitting(false);
+                setLoading(false);
+                setError(`Please fill in the ${field.label} field.`);
+                return;
+            }
         }
-        setIsLoading(true);
-        setError(true);
 
+        const data = new FormData();
+        Object.keys(formData).forEach((key) => {
+            data.append(key, formData[key]);
+        });
+
+        if (file) {
+            data.append("file", file);
+        }
+
+        // Check if images array is populated
+        if (formData.images && formData.images.length > 0) {
+            formData.images.forEach(image => {
+                data.append('images', image);
+            });
+        }
+        // Logging form data to verify fields before sending the request
+        for (let [key, value] of data.entries()) {
+            console.log(`${key}: ${value}`);
+        }
         try {
-            const response = await axios.post("/api/newOrder/service-form", formData, {
+            const response = await fetch('/api/newOrder/service-form', {
+                method: 'POST',
                 headers: {
-                    "Content-Type": "application/json",
+                    'Content-Type': "application/json",
                 },
+                body: JSON.stringify(formData),
             });
 
             if (response.status === 200) {
-                setSubmitMessage("Your request has been submitted successfully.");
+                setSuccess("Your service request has been submitted!");
+                setLoading(false);
+                setTimeout(() => {
+                    setSuccess("");
+                }, 4000);
+
                 setFormData({
-                    email: "",
-                    firstName: "",
-                    lastName: "",
-                    phoneNumber: "",
-                    companyName: "",
-                    service: "",
-                    helpMessage: "",
+                    serviceType: '',
+                    specificService: '',
+                    name: '',
+                    email: '',
+                    phoneNumber: '',
+                    address: '',
+                    price: '',
+                    unitPrice: '',
+                    quantity: 1,
+                    images: [] // Reset images
                 });
-            } else {
-                setSubmitMessage("There was an issue submitting your request. Please try again.");
+                setFile(null);
+                setStep(1);
+                setSubmitted(true);
             }
         } catch (error) {
-            console.error("Error submitting form:", error);
-            setError("There was an issue submitting your request. Please try again.");
-        } finally {
-            setIsLoading(false);
+            console.error("Error submitting service request:", error.response || error.message);
+            if (error.response && error.response.data && error.response.data.error) {
+                setError(error.response.data.error);
+            } else {
+                setError("There was an error submitting your service request. Please try again.");
+            }
         }
     };
-    useEffect(() => {
-        if (submitMessage || error) {
-            const timer = setTimeout(() => {
-                setSubmitMessage("");
-                setError("");
-            }, 3000);
 
-            return () => clearTimeout(timer);
-        }
-    }, [submitMessage, error])
 
-    useEffect(() => {
-        document.title = "Contact Us | Tongue Twist";
-        const metaDescription = document.querySelector('meta[name="description"]');
+    const handleServiceTypeChange = (serviceType) => {
+        setFormData({ ...formData, serviceType, specificService: '', price: '', unitPrice: '', quantity: 1 });
+        setStep(2);
+    };
 
-        if (metaDescription) {
-            metaDescription.setAttribute('content', "Get in touch with Tongue Twist for expert localization and translation services. We're here to assist with all your language needs. Contact us today!");
-        } else {
-            const meta = document.createElement('meta');
-            meta.name = 'description';
-            meta.content = 'Learn more about Tongue Twist, our mission, and the expert services we offer.';
-            document.head.appendChild(meta);
-        }
-    }, []); 
+    const handleSpecificServiceChange = (specificService) => {
+        const unitPrice = getUnitPrice(formData.serviceType, specificService);
+        setFormData({
+            ...formData,
+            specificService,
+            unitPrice,
+            price: calculateTotalPrice(unitPrice, formData.quantity)
+        });
+        setStep(3);
+    };
+
+    const handleQuantityChange = (e) => {
+        const quantity = e.target.value;
+        setFormData({ ...formData, quantity, price: calculateTotalPrice(formData.unitPrice, quantity) });
+    };
+
+    const calculateTotalPrice = (unitPrice, quantity) => {
+        const numericPrice = parseFloat(unitPrice.match(/\d+/g)?.join('') || 0);
+        const total = numericPrice * quantity;
+        return `Rs.${total.toFixed(2)}`;
+    };
+
+    const getUnitPrice = (serviceType, specificService) => {
+        const prices = {
+            'Barber': { 'Shave': 'Rs.150', 'Haircut': 'Rs.250', 'Hair Coloring': 'Rs.500' },
+            'Carpenter': { 'Door Repair': 'Rs.1000', 'Window Repair': 'Rs.1500' },
+            'Plumber': { 'Pipe Leak': 'Rs.100 per hole', 'Clogged Drain': 'Rs.1500' },
+            'Electrician Services': { 'Wiring Issue': 'Rs.300 per wire', 'Socket Installation': 'Rs.30 per socket', 'Lighting': 'Rs.90 per feet' },
+            'Housekeeper Services': { 'Cleaning': 'Rs.150 per room', 'Laundry': 'Rs.100 per suite', 'Iron': 'Rs.100 per suite' },
+        };
+        return prices[serviceType]?.[specificService] || 'Rs.0';
+    };
+
+    const requiresQuantityInput = (specificService) => specificService.includes('per');
+    console.log(formData);
 
     return (
-        <form onSubmit={handleSubmit} className="service-form">
-            <div className="flex justify-around  flex-col sm:flex-row  ">
-                <div className="flex flex-col sm:w-[45%] p-10 ">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-secondary text-4xl font-bold">Get In Touch</h1>
-                        <h1 className="text-1xl font-semibold text-primary">Let's Chat, Reach Out to Us</h1>
-                        <p>Have question or feedback? We"re here to help. Send us a message and we"ll get back to you as soon as possible.</p>
+        <main className="z-30 bg-white border-[#01185B] chatBotMain rounded-md">
+            <div className="text-center flex flex-col gap-6 h-full overflow-hidden p-2">
+                <div className='text-3xl font-bold flex items-center justify-between'>
+                    <div>Request a Service</div>
 
-                        <div className="mt-2 flex flex-col gap-2">
-                            <div className="flex gap-2 items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" color="#f14f4e" fill="none">
-                                    <path d="M17 3.33782C15.5291 2.48697 13.8214 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 11.3151 21.9311 10.6462 21.8 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                    <path d="M8 12.5C8 12.5 9.5 12.5 11.5 16C11.5 16 17.0588 6.83333 22 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                <h1 className="text-xs sm:text-sm">Learn more about Tongue Twist</h1>
-                            </div>
-                            <div className="flex gap-2 items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" color="#f14f4e" fill="none">
-                                    <path d="M17 3.33782C15.5291 2.48697 13.8214 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 11.3151 21.9311 10.6462 21.8 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                    <path d="M8 12.5C8 12.5 9.5 12.5 11.5 16C11.5 16 17.0588 6.83333 22 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                <h1 className="text-xs sm:text-sm">Get the right solution with Tongue Twist.</h1>
-                            </div>
-                        </div>
-                    </div>
-                    <hr className="border-[1px]" />
-                    <div className="">
-                        {/* <img src={qouteImage} loading="eager" width={"500px"} height={"386px"} alt="Space Ship Image" /> */}
-                    </div>
                 </div>
-                <div className="sm:w-[45%] flex flex-col gap-7 p-10">
 
-                    <div className="flex flex-col">
-
-                        <div className="">
-                            <label htmlFor="email" className="text-sm sm:text-base font-semibold">Email*</label>
-                        </div>
-                        <div className="w-full flex items-end">
-
-                            <div className="w-full border-[1px]">
-
-                                <input
-                                    type="email"
-                                    className="w-full outline-none p-2"
-                                    id="email"
-                                    name="email"
-                                    placeholder="Your Email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                />
+                {!submitted ? (
+                    <form onSubmit={handleSubmit}>
+                        {step === 1 && (
+                            <div className='flex flex-col items-center gap-6'>
+                                <h3 className='text-4xl'>Select Service Type</h3>
+                                {['Barber', 'Carpenter', 'Plumber', 'Electrician Services', 'Housekeeper Services'].map((service) => (
+                                    <button
+                                        key={service}
+                                        className='font-semibold p-2 border rounded-md w-[80%] transition transform ease-in-out duration-300 sm:hover:scale-105 hover:bg-[#FFF] hover:text-black bg-[#00185a] text-[#F6F0E2]'
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData({ ...formData, serviceType: service })
+                                            handleServiceTypeChange(service)
+                                        }}
+                                    >
+                                        {service}
+                                    </button>
+                                ))}
                             </div>
-                        </div>
-                    </div>
+                        )}
 
-                    <div className="flex justify-between">
-                        <div className=" w-[45%] ">
+                        {step === 2 && (
+                            <div className='flex flex-col items-center gap-6'>
+                                <h3 className='text-4xl'>Specific Service</h3>
+                                {getSpecificServiceOptions(formData.serviceType).map((option) => (
+                                    <button
+                                        key={option}
+                                        className='font-semibold p-2 border rounded-md w-[80%] transition transform ease-in-out duration-300 sm:hover:scale-105 hover:bg-[#FFF] hover:text-black bg-[#00185a] text-[#F6F0E2]'
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData({ ...formData, specificService: option })
+                                            handleSpecificServiceChange(option)
+                                        }}
+                                    >
+                                        {option}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="mt-4 font-semibold px-5 py-2 border rounded-md transition transform ease-in-out duration-300 sm:hover:scale-105 hover:bg-[#FFF] hover:text-black bg-[#00185a] text-[#F6F0E2]"
+                                    onClick={() => setStep(1)}
+                                >
+                                    Back
+                                </button>
+                            </div>
+                        )}
+
+                        {step === 3 && (
                             <div>
-                                <label htmlFor="firstName" className="text-sm sm:text-base font-semibold">First Name*</label>
-                            </div>
+                                <h3 className='text-4xl'>Provide Your Details</h3>
+                                <div className='flex flex-col gap-4'>
+                                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} className='inputField' placeholder='Your Name' />
+                                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} className='inputField' placeholder='Your Email' />
 
-                            <div className="flex items-end">
-                                <div className="w-full border-[1px]">
-                                    <input
-                                        type="text"
-                                        id="firstName"
-                                        name="firstName"
-                                        placeholder="Your First Name"
-                                        className="  w-full outline-none p-2"
-                                        value={formData.firstName}
-                                        onChange={handleChange}
-                                        required
-                                    />
+                                    <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className='inputField' placeholder='Your Phone Number' />
+
+                                    <input type="text" name="address" value={formData.address} onChange={handleInputChange} className='inputField' placeholder='Service Address' />
+
+
+
+                                    {requiresQuantityInput(formData.unitPrice) && (
+                                        <input
+                                            type="number"
+                                            name="quantity"
+                                            value={formData.quantity}
+                                            onChange={handleQuantityChange}
+                                            className='p-2 border rounded-md'
+                                            min="1"
+                                            placeholder='Quantity'
+                                        />
+                                    )}
+
+                                    <input type="file" onChange={handleFileChange} />
+
+                                    <p className='text-lg font-semibold'>Total Price: {formData.price}</p>
+
+                                    <div className="flex justify-between">
+                                        <button
+                                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                                            type="button"
+                                            onClick={() => setStep(step - 1)}
+                                        >
+                                            Previous
+                                        </button>
+                                        <button
+                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                            type="submit"
+                                        >
+                                            Submit
+                                        </button>
+                                    </div>
+
+                                    {!isWalletConnected && (
+                                        <button
+                                            type="button"
+                                            onClick={connectWallet}
+                                            className='mt-2 font-semibold px-5 py-2 border rounded-md transition transform ease-in-out duration-300 sm:hover:scale-105 hover:bg-[#FFF] hover:text-black bg-[#00185a] text-[#F6F0E2]'
+                                            disabled={walletLoading}
+                                        >
+                                            {walletLoading ? 'Connecting Wallet...' : 'Connect Wallet'}
+                                        </button>
+                                    )}
                                 </div>
+                                {error && <p className='text-red-600'>{error}</p>}
+                                {success && <p className='text-green-600'>{success}</p>}
                             </div>
-                        </div>
-                        <div className="w-[45%]">
-                            <div>
-                                <label htmlFor="lastName" className="text-sm sm:text-base font-semibold">Last Name*</label>
-                            </div>
-
-                            <div className="flex items-end">
-
-                                <div className="w-full border-[1px]">
-                                    <input
-                                        type="text"
-                                        id="lastName"
-                                        name="lastName"
-                                        placeholder="Your Last Name"
-                                        className="p-2 w-full outline-none"
-                                        value={formData.lastName}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                        )}
+                    </form>
+                ) : (
+                    <div className='text-lg text-green-600'>
+                        {success}
                     </div>
-
-                    <div className="flex flex-col">
-                        <label htmlFor="phoneNumber" className="text-sm sm:text-base font-semibold">Phone Number</label>
-
-                        <div className="w-full flex items-end">
-
-                            <div className="w-full border-[1px]">
-                                <input
-                                    type="tel"
-                                    id="phoneNumber"
-                                    name="phoneNumber"
-                                    placeholder="Your Phone Number"
-                                    className="w-full outline-none p-2"
-                                    value={formData.phoneNumber}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="">
-                        <div className="flex flex-col">
-                            <div>
-                                <label htmlFor="companyName" className="text-sm sm:text-base font-semibold">Company Name</label>
-                            </div>
-
-                            <div className="w-full flex items-end">
-                                <div className="w-full border-[1px]">
-                                    <input
-                                        type="text"
-                                        id="companyName"
-                                        placeholder="Your Company Name"
-                                        name="companyName"
-                                        className=" w-full outline-none p-2"
-                                        value={formData.companyName}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="">
-                        <div className="flex flex-col">
-
-                            <label htmlFor="service" className="text-sm sm:text-base font-semibold">What Service Are You Interested In? *</label>
-                            <select
-                                id="service"
-                                name="service"
-                                value={formData.service}
-                                onChange={handleChange}
-                                className="outline-none border-[1px] w-full p-2"
-                                required
-                            >
-                                <option value="" className="text-xs">Select a service</option>
-                                <option value="Document Localization">Document Localization</option>
-                                <option value="Audiovisual Localization">Audiovisual Localization</option>
-                                <option value="Both">Both</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="flex flex-col">
-
-                            <label htmlFor="helpMessage" className="text-sm sm:text-base font-semibold">How Can We Help You?</label>
-                            <textarea
-                                id="helpMessage"
-                                name="helpMessage"
-                                rows="4"
-                                className="outline-none border-[1px] w-full"
-                                value={formData.helpMessage}
-                                onChange={handleChange}
-                            />
-                        </div>
-                    </div>
-                    <button type="submit" className="flex justify-center">
-                        <div className="w-[70%] text-[1.2rem] p-3 font-bold flex h-[51px] justify-center items-center border  rounded-md hover:bg-white hover:border hover:text-black text-white bg-[#f14f4a] transition transform duration-300 hover:scale-105">
-                            {isLoading ? "Submitting..." : "Submit"}
-                        </div>
-                    </button>
-                    <div className="text-center">
-                        {submitMessage && <p className="text-green-500">{submitMessage}</p>}
-                        {error && <p className="text-red-500">{error}</p>}
-                    </div>
-
-                </div> 
-
+                )}
             </div>
-
-        </form>
-    )
+        </main>
+    );
 }
-
-export default ServiceForm;
+const getSpecificServiceOptions = (serviceType) => {
+    const serviceOptions = {
+        'Barber': ['Shave', 'Haircut', 'Hair Coloring'],
+        'Carpenter': ['Door Repair', 'Window Repair'],
+        'Plumber': ['Pipe Leak', 'Clogged Drain'],
+        'Electrician Services': ['Wiring Issue', 'Socket Installation', 'Lighting'],
+        'Housekeeper Services': ['Cleaning', 'Laundry', 'Iron'],
+    };
+    return serviceOptions[serviceType] || [];
+};

@@ -1,42 +1,51 @@
-import { transporter } from "../config/emailConfig.js";
+import fs from "fs";
+import { transporter } from "../config/emailConfig.js"; 
 
-export const test = (req, res) => {
-    res.json({
-        message: "API Route Is working"
-    })
-};
-
-export const processContactRequest = (req, res) => {
+export const processServiceRequest = (req, res) => {
     const {
+        serviceType,
+        specificService,
+        name,
         email,
-        firstName,
-        lastName,
         phoneNumber,
-        companyName,
-        service,
-        helpMessage,
+        address,
+        price,
+        quantity,
     } = req.body;
 
+    const file = req.file;
 
-    if (!email || !firstName || !lastName) {
+    if (!serviceType || !specificService || !name || !email || !phoneNumber || !address) {
         return res.status(400).json({ error: "Please fill in all required fields." });
     }
-    let emailText = `
-  New contact request:
-  email: ${email}
-  First Name: ${firstName}
-  Last Name: ${lastName}
+
+    let emailText = `New service request: 
+  Service Type: ${serviceType}
+  Specific Service: ${specificService}
+  Name: ${name}
+  Email: ${email}
   Phone Number: ${phoneNumber}
-  Company Name: ${companyName}
-  Service Type: ${service}
-  Help Message: ${helpMessage}
-  `;
+  Address: ${address}
+  Price: ${price}
+  Quantity: ${quantity}`;
+
+    if (file) {
+        emailText += `\n\nAttached file: ${file.filename}`;
+    }
 
     const mailOptions = {
         from: email,
         to: process.env.EMAIL_USER,
-        subject: "Contact Request",
+        subject: "New Service Request",
         text: emailText,
+        attachments: file
+            ? [
+                {
+                    filename: file.originalname,
+                    path: file.path,
+                },
+            ]
+            : [],
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -45,8 +54,16 @@ export const processContactRequest = (req, res) => {
             return res.status(500).json({ error: "Error sending email. Please try again." });
         }
 
+        if (file) {
+            fs.unlink(file.path, (err) => {
+                if (err) {
+                    console.error("Error deleting file:", err);
+                }
+            });
+        }
+
         console.log("Email sent:", info.response);
-        res.status(200).json({ message: "Quote request submitted successfully" });
+        res.status(200).json({ message: "Service request submitted successfully" });
     });
 };
 

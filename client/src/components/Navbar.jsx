@@ -1,19 +1,41 @@
 import './Navbar.css';
-import logo from '../assets/images/logo.webp'
-import { useState } from 'react';
+import logo from '../assets/images/logoNew.png';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom';
 
 function Navbar() {
     const [navItems, setNavItems] = useState(true);
+    const [isScrolled, setIsScrolled] = useState(false);
+
     function toogleNavbar() {
         setNavItems(!navItems)
     }
 
     const { currentUser } = useSelector(state => state.user)
+    function toogleNavbar() {
+        setNavItems(!navItems)
+    }
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 100) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
 
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
     return (
-        <nav className="navbar z-20 flex items-center justify-around p-4 shadow-[0_10px_22px_rgba(29,_78,_216,_0.24)]">
+        // <nav className="navbar z-20 flex items-center justify-around p-4 shadow-[0_10px_22px_rgba(29,_78,_216,_0.24)]">
+        <nav
+            className={`navbar z-20 flex  items-center justify-around ${isScrolled ? 'p-3' : 'px-4 py-5'
+                }`}>
             <div className="logo">
                 <Link to="/" >
                     <img src={logo} alt="logo-will-appear-here" width={"155px"} height={"113px"} />

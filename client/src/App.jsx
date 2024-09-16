@@ -16,6 +16,7 @@ import Services from './pages/Services'
 import ServicesFrom from './pages/ServicesFrom'
 import Expertise from './pages/Expertise'
 import Navbar from './components/Navbar'
+import './App.css'
 
 export default function App() {
   return (
